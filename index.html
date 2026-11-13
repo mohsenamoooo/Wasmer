@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>گزارش بازدید از مدارس چندپایه — دبستان شهید اژه‌ای</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css">
+<style>
+  :root{
+    --ink:#12303a;
+    --muted:#64798a;
+    --line:#e4ebf2;
+    --brand:#0f766e;
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    font-family:'Vazirmatn', Tahoma, system-ui, sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1100px 560px at 85% -12%, #ccfbf1 0%, transparent 62%),
+      radial-gradient(900px 520px at -5% 112%, #e0e7ff 0%, transparent 62%),
+      #f6f8fb;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- نوار پیشرفت ---------- */
+  .bar{
+    position:fixed; top:0; right:0; left:0; height:5px;
+    background:rgba(15,118,110,.10); z-index:50;
+  }
+  .bar-fill{
+    height:100%; width:0%;
+    background:linear-gradient(90deg,#0f766e,#14b8a6,#f59e0b);
+    border-radius:0 0 99px 99px;
+    transition:width .35s ease;
+  }
+
+  /* ---------- اسلایدها ---------- */
+  .deck{position:fixed; inset:0}
+  .slide{
+    position:absolute; inset:0;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:clamp(1rem,4.5vh,3rem) clamp(1rem,5vw,4.5rem) 6.2rem;
+    overflow:hidden;
+
+    --c:#0f766e;
+    --cbg:#e7f7f5;
+  }
+  .slide.active{display:flex; animation:pop .42s cubic-bezier(.22,.8,.3,1)}
+  @keyframes pop{from{opacity:0; transform:translateY(16px)} to{opacity:1; transform:none}}
+
+  .slide.math{--c:#0d9488; --cbg:#e6faf7}
+  .slide.sci{--c:#15803d; --cbg:#eafaf0}
+  .slide.fa{--c:#7c3aed; --cbg:#f3edff}
+  .slide.info{--c:#0369a1; --cbg:#e8f4fe}
+
+  .wrap{
+    width:100%; max-width:1080px; max-height:100%;
+    overflow-y:auto; padding:.4rem .3rem 1rem;
+    scrollbar-width:thin;
+  }
+  .wrap::-webkit-scrollbar{width:6px}
+  .wrap::-webkit-scrollbar-thumb{background:#cbd5e1; border-radius:99px}
+
+  /* ---------- تیترها ---------- */
+  .kicker{
+    display:inline-block;
+    font-size:.82rem; font-weight:800;
+    color:var(--c); background:var(--cbg);
+    padding:.36rem .85rem; border-radius:999px;
+    margin-bottom:.7rem;
+  }
+  h2{
+    font-size:clamp(1.25rem,2.6vw,1.9rem);
+    line-height:1.5; margin:0 0 1.1rem;
+    letter-spacing:-.01em;
+  }
+  h2 .sub{display:block; font-size:.9rem; font-weight:600; color:var(--muted); margin-top:.35rem}
+
+  /* ---------- کارت‌ها ---------- */
+  .grid{display:grid; gap:.9rem}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .g3{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .g4{grid-template-columns:repeat(auto-fit,minmax(185px,1fr))}
+
+  .card{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:18px;
+    padding:1rem 1.15rem;
+    box-shadow:0 14px 30px -24px rgba(15,42,60,.55);
+  }
+  .card h3{margin:0 0 .5rem; font-size:1rem; color:var(--c)}
+  .card p{margin:0; font-size:.94rem; line-height:1.9; color:#2b4451}
+
+  .role{font-size:.8rem; font-weight:700; color:var(--muted); display:block; margin-bottom:.3rem}
+  .name{font-size:1.05rem; font-weight:800}
+
+  /* ---------- آمار ---------- */
+  .stat{text-align:center; padding:1.2rem 1rem}
+  .stat-num{
+    display:block; font-size:2.6rem; font-weight:900; line-height:1.1;
+    color:var(--c);
+  }
+  .stat-lbl{display:block; font-weight:700; margin-top:.25rem; font-size:.98rem}
+  .note{display:block; color:var(--muted); font-size:.85rem; margin-top:.35rem}
+
+  /* ---------- گام‌ها ---------- */
+  .steps{display:flex; flex-direction:column; gap:.6rem}
+  .step{
+    display:flex; gap:.75rem; align-items:flex-start;
+    background:#fff; border:1px solid var(--line);
+    border-radius:14px; padding:.72rem 1rem;
+    font-size:.95rem; line-height:1.85;
+  }
+  .step .n{
+    flex:0 0 auto; width:1.85rem; height:1.85rem; border-radius:50%;
+    background:var(--cbg); color:var(--c);
+    display:grid; place-items:center;
+    font-weight:800; font-size:.85rem;
+  }
+
+  /* ---------- نقل‌قول / پرسش ---------- */
+  .q{
+    border-right:4px solid var(--c);
+    background:var(--cbg);
+    border-radius:14px;
+    padding:.85rem 1.1rem;
+    font-weight:700; line-height:1.9;
+    font-size:.98rem;
+  }
+  .q span{color:var(--c)}
+
+  /* ---------- چیپ‌ها ---------- */
+  .chips{display:flex; flex-wrap:wrap; gap:.55rem; margin-top:1rem}
+  .chip{
+    display:inline-flex; align-items:center;
+    background:#fff; border:1px solid var(--line);
+    border-radius:999px; padding:.42rem .95rem;
+    font-size:.9rem; font-weight:700; color:#33505e;
+  }
+
+  ul.plain{margin:0; padding-right:1.2rem; line-height:2; font-size:.96rem}
+  ul.plain li::marker{color:var(--c)}
+
+  /* ---------- اسلاید نخست ---------- */
+  .hero{text-align:center}
+  .bismillah{font-size:1.05rem; font-weight:800; color:var(--c); margin:0}
+  .hero h1{
+    font-size:clamp(1.8rem,4.4vw,3.1rem);
+    line-height:1.4; margin:.55rem 0 0;
+    letter-spacing:-.02em;
+  }
+  .hero h1::after{
+    content:''; display:block; width:96px; height:5px; border-radius:99px;
+    background:linear-gradient(90deg,#0f766e,#f59e0b);
+    margin:.9rem auto 0;
+  }
+  .school{font-size:clamp(1.05rem,2.2vw,1.4rem); font-weight:800; color:var(--brand); margin:1rem 0 0}
+  .hero .chips{justify-content:center}
+
+  /* ---------- ناوبری ---------- */
+  .nav{
+    position:fixed; bottom:1.1rem; left:50%; transform:translateX(-50%);
+    display:flex; align-items:center; gap:.7rem;
+    background:rgba(255,255,255,.85);
+    backdrop-filter:blur(10px);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:.45rem .6rem;
+    box-shadow:0 18px 40px -26px rgba(15,42,60,.8);
+    z-index:60;
+  }
+  .btn{
+    font-family:inherit; font-size:.9rem; font-weight:800;
+    color:#fff; background:linear-gradient(180deg,#14b8a6,#0f766e);
+    border:none; border-radius:999px;
+    padding:.55rem 1.15rem; cursor:pointer;
+    transition:transform .15s ease, filter .15s ease;
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn:active{transform:scale(.96)}
+  .btn[disabled]{opacity:.35; cursor:default; filter:none}
+  .counter{
+    font-size:.9rem; font-weight:800; color:var(--ink);
+    min-width:64px; text-align:center;
+    font-variant-numeric:tabular-nums;
+  }
+  .counter .sep{color:#b6c4d0; margin:0 .2rem}
+
+  @media (max-width:520px){
+    .btn{padding:.5rem .85rem; font-size:.82rem}
+    .counter{min-width:52px; font-size:.82rem}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar"><div class="bar-fill" id="progress"></div></div>
+
+<main class="deck" id="deck">
+
+  <!-- ۱ — جلد -->
+  <section class="slide hero active">
+    <div class="wrap">
+      <p class="bismillah">به نام خدا</p>
+      <h1>گزارش بازدید از مدارس چندپایه</h1>
+      <p class="school">دبستان شهید اژه‌ای</p>
+      <div class="chips">
+        <span class="chip">شهرستان تیران و کرون</span>
+        <span class="chip">روستای گلاب</span>
+        <span class="chip">۳ آبان ۱۴۰۵</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۲ — اعضای گروه -->
+  <section class="slide info">
+    <div class="wrap">
+      <span class="kicker">معرفی</span>
+      <h2>اعضای گروه</h2>
+      <div class="grid g4">
+        <div class="card"><span class="role">ارائه‌کننده</span><span class="name">امیرحسین صادقی</span></div>
+        <div class="card"><span class="role">دبیر</span><span class="name">محسن عموعلی</span></div>
+        <div class="card"><span class="role">مشاهده‌گر</span><span class="name">حسین سلیمی</span></div>
+        <div class="card"><span class="role">فیلم‌بردار</span><span class="name">علی‌اصغر فاتحی</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۳ — مشخصات کلاس -->
+  <section class="slide info">
+    <div class="wrap">
+      <span class="kicker">مشخصات کلاس چندپایه</span>
+      <h2>یک کلاس، دو پایه</h2>
+      <div class="grid g2">
+        <div class="card stat">
+          <span class="stat-num">۲</span>
+          <span class="stat-lbl">دانش‌آموز پایه پنجم</span>
+          <span class="note">۱ پسر و ۱ دختر</span>
+        </div>
+        <div class="card stat">
+          <span class="stat-num">۹</span>
+          <span class="stat-lbl">دانش‌آموز پایه ششم</span>
+          <span class="note">۵ پسر و ۴ دختر</span>
+        </div>
+      </div>
+      <p class="note" style="margin-top:.9rem">در مجموع ۱۱ دانش‌آموز، با مدیریت یک معلمِ مدیرآموزگار.</p>
+    </div>
+  </section>
+
+  <!-- ۴ — برنامه زنگ اول -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول</span>
+      <h2>برنامه درسی</h2>
+      <div class="grid g2">
+        <div class="card">
+          <h3>پایه پنجم</h3>
+          <p>علوم</p>
+        </div>
+        <div class="card">
+          <h3>پایه ششم</h3>
+          <p>ریاضی</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۵ — آغاز زنگ اول -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول · آغاز</span>
+      <h2>ورود به کلاس</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>به محض ورود، دانش‌آموزان با یک شعر زیبا از گروه استقبال کردند.</span></div>
+        <div class="step"><span class="n">۲</span><span>سلام و احوال‌پرسی با معلم و دانش‌آموزان انجام شد.</span></div>
+        <div class="step"><span class="n">۳</span><span>آقای صادقی (ارائه‌کننده) برنامه کلاسی را از معلم پرسید.</span></div>
+        <div class="step"><span class="n">۴</span><span>خانم معلم در نقش مدیرآموزگار اداره کلاس را بر عهده داشتند.</span></div>
+        <div class="step"><span class="n">۵</span><span>معلم از پنجمی‌ها خواست کتاب علوم را باز کنند و درس جدید را پیش‌خوانی کنند.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۶ — شروع تدریس ریاضی -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول · ریاضی ششم</span>
+      <h2>شروع تدریس: جمع و تفریق کسرها</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>معلم از آقای صادقی خواست مبحث جدید «جمع و تفریق کسرها» را برای ششمی‌ها تدریس کند و خود از کلاس خارج شد.</span></div>
+        <div class="step"><span class="n">۲</span><span>تدریس با این پرسش آغاز شد: «چه کسی به یاد داره اعداد کسری به چه شکل بودند؟»</span></div>
+      </div>
+      <div class="q" style="margin-top:1rem">
+        نتیجه: سکوتی در کلاس برقرار شد؛ بخشی از آن ناشی از <span>ناآشنایی</span> دانش‌آموزان با گروه بازدیدکننده بود.
+        بنابراین ارائه‌کننده تصمیم گرفت از <span>مرور پیش‌نیازها</span> شروع کند.
+      </div>
+    </div>
+  </section>
+
+  <!-- ۷ — مرور پیش‌نیاز -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول · مرور پیش‌نیاز</span>
+      <h2>بازگشت به پایه‌های اعداد کسری</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>پرسش: «اعداد کسری چه بخش‌هایی داشتند؟»</span></div>
+        <div class="step"><span class="n">۲</span><span>دانش‌آموزان هر آنچه می‌دانستند بیان کردند و ارائه‌کننده بخش‌های مختلف کسر را توضیح داد.</span></div>
+        <div class="step"><span class="n">۳</span><span>ورود به جمع کسرها با یک مثال ساده با مخرج مشترک.</span></div>
+      </div>
+      <div class="q" style="margin-top:1rem">پرسش: «یک‌دوم به‌علاوهٔ یک‌دوم چقدر می‌شود؟» — دوباره سکوتی بر کلاس حاکم شد.</div>
+    </div>
+  </section>
+
+  <!-- ۸ — مثال لیوان -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول · آموزش عینی</span>
+      <h2>از کسر تا لیوان آب</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>ارائه‌کننده دو لیوان را رسم کرد که هر کدام تا نیمه پر بود.</span></div>
+        <div class="step"><span class="n">۲</span><span>پرسش: «اگر آب داخل یک لیوان را به دیگری اضافه کنیم، چقدر آب داریم؟»</span></div>
+        <div class="step"><span class="n">۳</span><span>همهٔ دانش‌آموزان پاسخ دادند: «یک لیوان آب داریم.»</span></div>
+      </div>
+      <div class="q" style="margin-top:1rem">نتیجه: انتقال از <span>محسوس به مجرد</span>، درک جمع کسرهای هم‌مخرج را برای بچه‌ها ساده کرد.</div>
+    </div>
+  </section>
+
+  <!-- ۹ — کسر بزرگتر از واحد -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول · بازگشت معلم</span>
+      <h2>کسر بزرگ‌تر از واحد و عدد مخلوط</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>معلم وارد کلاس شد و مرور «ساده کردن کسر بزرگ‌تر از واحد و تبدیل آن به عدد مخلوط» را آغاز کرد.</span></div>
+        <div class="step"><span class="n">۲</span><span>کسر <b>۱۷/۲</b> را روی تابلو نوشت و پرسید: «این چه نوع کسری است؟»</span></div>
+        <div class="step"><span class="n">۳</span><span>دانش‌آموزان: «کسر بزرگ‌تر از واحد است، بنابراین باید به عدد مخلوط تبدیل شود.»</span></div>
+        <div class="step"><span class="n">۴</span><span>یکی از دانش‌آموزان این کار را با رسم شکل روی تابلو انجام داد و معلم مراحل را بار دیگر توضیح داد.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۱۰ — مخرج مشترک -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول · مخرج مشترک</span>
+      <h2>وقتی مخرج‌ها برابر نیستند</h2>
+      <div class="q">پرسش آغازین: «بچه‌ها به نظرتون یک‌سوم به‌علاوهٔ یک‌چهارم چقدر می‌شود؟»</div>
+      <div class="steps" style="margin-top:.9rem">
+        <div class="step"><span class="n">۱</span><span>پاسخ بچه‌ها: «مخرج‌ها برابر نیست و نمی‌شود جمع کرد.»</span></div>
+        <div class="step"><span class="n">۲</span><span>توضیح ارائه‌کننده: برای جمع، ابتدا باید مخرج کسرها را برابر کنیم.</span></div>
+        <div class="step"><span class="n">۳</span><span>معلم روش مخرج مشترک را توضیح داد و آقای صادقی همان مبحث را با رسم شکل برای بچه‌ها روشن‌تر کرد.</span></div>
+        <div class="step"><span class="n">۴</span><span>در حین رسم شکل، تذکرهای لازم برای عمل مخرج مشترک نیز به دانش‌آموزان داده می‌شد.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۱۱ — تمرین در دفتر -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول · تمرین</span>
+      <h2>حل تمرین در دفتر</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>معلم مثال ارائه‌شده را دوباره مرور کرد.</span></div>
+        <div class="step"><span class="n">۲</span><span>از بچه‌ها خواست دفتر تمرین را باز کنند و مثال روی تابلو را حل کنند.</span></div>
+        <div class="step"><span class="n">۳</span><span>یکی از دانش‌آموزان به سرعت حل کرد و معلم او را پای تابلو آورد.</span></div>
+        <div class="step"><span class="n">۴</span><span>تذکر معلم: «کوچک‌ترین مخرج مشترک را باید در نظر بگیریم.»</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۱۲ — مدیریت توجه -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول · مدیریت کلاس</span>
+      <h2>حفظ مشارکت و توجه دانش‌آموزان</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>معلم مثال دیگری داد تا بچه‌ها در دفتر حل کنند.</span></div>
+        <div class="step"><span class="n">۲</span><span>متوجه شد یکی از دانش‌آموزان حواسش به درس نیست؛ از او خواست پای تابلو بیاید و مثال را حل کند.</span></div>
+        <div class="step"><span class="n">۳</span><span>با وجود بی‌توجهی، دانش‌آموز مثال را درست حل کرد.</span></div>
+        <div class="step"><span class="n">۴</span><span>معلم از او خواست پاسخ را به کسر مخلوط تبدیل کند و سپس با پرسش از بقیه، درستی پاسخ را بررسی کرد.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۱۳ — پایان زنگ اول -->
+  <section class="slide math">
+    <div class="wrap">
+      <span class="kicker">زنگ اول · جمع‌بندی</span>
+      <h2>مثال سوم و پایان زنگ</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>همین روند با یک مثال جدید و یک دانش‌آموز دیگر تکرار شد.</span></div>
+        <div class="step"><span class="n">۲</span><span>تفاوت این بود که پاسخ نیاز به تبدیل به کسر مخلوط نداشت.</span></div>
+        <div class="step"><span class="n">۳</span><span>پرسش معلم: «چرا نمی‌شود پاسخ را به کسر مخلوط تبدیل کرد؟»</span></div>
+        <div class="step"><span class="n">۴</span><span>پاسخ همهٔ بچه‌ها: «چون صورت کسر کوچک‌تر از مخرج است.»</span></div>
+      </div>
+      <div class="q" style="margin-top:1rem">زمان کلاس تمام شد و معلم برای زدن زنگ از کلاس خارج شد.</div>
+    </div>
+  </section>
+
+  <!-- ۱۴ — برنامه زنگ دوم -->
+  <section class="slide sci">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم</span>
+      <h2>برنامه درسی</h2>
+      <div class="grid g2">
+        <div class="card">
+          <h3>پایه پنجم</h3>
+          <p>علوم و ریاضی</p>
+        </div>
+        <div class="card">
+          <h3>پایه ششم</h3>
+          <p>فارسی</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۱۵ — علوم پنجم: شروع -->
+  <section class="slide sci">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · علوم پنجم</span>
+      <h2>تدریس آقای صادقی به کلاس پنجمی‌ها</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>معلم از آقای صادقی خواست درس جدید علوم پنجم را که زنگ قبل پیش‌خوانی شده بود، با آن دو دانش‌آموز کار کند.</span></div>
+        <div class="step"><span class="n">۲</span><span>معلم خودش تدریس فارسی ششمی‌ها را آغاز کرد.</span></div>
+        <div class="step"><span class="n">۳</span><span>پرسش کلی: «بچه‌ها چه چیزهای جدیدی از این درس یاد گرفتید؟»</span></div>
+        <div class="step"><span class="n">۴</span><span>دانش‌آموزان شروع به توضیح دادن کردند و ارائه‌کننده پس از شنیدن صحبت‌هایشان، بخش‌های یادنگرفته را توضیح داد.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۱۶ — تغییرات مواد -->
+  <section class="slide sci">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · علوم پنجم</span>
+      <h2>تغییرات مواد: فیزیکی و شیمیایی</h2>
+      <div class="grid g2">
+        <div class="card">
+          <h3>تغییر فیزیکی</h3>
+          <p>هر دو دانش‌آموز این نوع تغییر را به خوبی فهمیده بودند.</p>
+        </div>
+        <div class="card">
+          <h3>تغییر شیمیایی</h3>
+          <p>این بخش را درست متوجه نشده بودند؛ بنابراین با مثال‌های مختلف و مرتبط با زندگی روزمره توضیح داده شد.</p>
+        </div>
+      </div>
+      <div class="q" style="margin-top:1rem">برای اطمینان از یادگیری، پرسش‌هایی دربارهٔ تغییرات مختلف در زندگی واقعی از دانش‌آموزان پرسیده شد.</div>
+    </div>
+  </section>
+
+  <!-- ۱۷ — ادامه علوم پنجم -->
+  <section class="slide sci">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · علوم پنجم</span>
+      <h2>تثبیت یادگیری و ورود به ریاضی</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>ارائه‌کننده از آن دو دانش‌آموز خواست مثال‌هایی از تغییرات مواد بزنند.</span></div>
+        <div class="step"><span class="n">۲</span><span>سپس سراغ کتاب رفت و بقیهٔ مطالب را که یاد گرفته بودند با آنها مرور کرد.</span></div>
+        <div class="step"><span class="n">۳</span><span>معلم در حین تدریس فارسی، بر پنجمی‌ها هم نظارت داشت که به صحبت‌های آقای صادقی توجه کنند.</span></div>
+        <div class="step"><span class="n">۴</span><span>در ادامه، معلم از آقای صادقی خواست بخش «اعداد مرکب» ریاضی را با آن دو کار کند.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۱۸ — اعداد مرکب -->
+  <section class="slide sci">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · ریاضی پنجم</span>
+      <h2>اعداد مرکب</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>توضیح تفاوت‌های ساعت، دقیقه و ثانیه.</span></div>
+        <div class="step"><span class="n">۲</span><span>تشریح سوالات فعالیت کتاب و حل آنها به شیوهٔ پرسش و پاسخ.</span></div>
+        <div class="step"><span class="n">۳</span><span>بچه‌ها در جمع و تفریق اعداد مرکب مشکل داشتند.</span></div>
+      </div>
+      <div class="q" style="margin-top:1rem">
+        راه‌حل ارائه‌شده: اعداد مرکب را <span>بخش‌بخش</span> جمع کنید — اول ساعت، بعد دقیقه و بعد ثانیه (یا برعکس) — تا گیج نشوید.
+      </div>
+    </div>
+  </section>
+
+  <!-- ۱۹ — فارسی ششم: خواندن درس -->
+  <section class="slide fa">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · فارسی ششم</span>
+      <h2>تدریس معلم به کلاس ششمی‌ها</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>معلم از یک دانش‌آموز خواست وسط کلاس از روی درس سوم بخواند.</span></div>
+        <div class="step"><span class="n">۲</span><span>حین خواندن، معلم هرازگاهی از دانش‌آموز دیگری می‌خواست ادامهٔ درس را بخواند.</span></div>
+        <div class="step"><span class="n">۳</span><span>پس از خواندن چند بند، مترادف کلمات درس از دانش‌آموزان پرسیده شد.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۲۰ — شعر حفظی -->
+  <section class="slide fa">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · فارسی ششم</span>
+      <h2>پرسش شعر حفظی</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>هر دانش‌آموز را صدا می‌زد تا وسط کلاس بیاید و شعر را بخواند.</span></div>
+        <div class="step"><span class="n">۲</span><span>اگر بیتی را جا می‌انداخت، معلم از بقیه می‌پرسید: «آیا درست خواند یا نه؟»</span></div>
+        <div class="step"><span class="n">۳</span><span>سپس دوباره به سراغ خواندن متن درس رفت و از یک دانش‌آموز جدید خواست ادامهٔ آن را بخواند.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۲۱ — خلاصه و مفهوم درس -->
+  <section class="slide fa">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · فارسی ششم</span>
+      <h2>خلاصه‌گویی و مفهوم درس</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>یکی از دانش‌آموزان وسط کلاس آمد و خلاصهٔ درس را بیان کرد و برداشت خود را گفت.</span></div>
+        <div class="step"><span class="n">۲</span><span>مفهوم درس: «پشیمانی سودی ندارد.»</span></div>
+        <div class="step"><span class="n">۳</span><span>معلم چرایی این موضوع را از چند دانش‌آموز پرسید و از آنها خواست مثال بزنند.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۲۲ — دستور زبان -->
+  <section class="slide fa">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · دستور زبان</span>
+      <h2>نهاد و فعل</h2>
+      <div class="q">جملهٔ روی تابلو: «پروانه روی گل نشست.»</div>
+      <div class="steps" style="margin-top:.9rem">
+        <div class="step"><span class="n">۱</span><span>یکی از دانش‌آموزان جمله را پای تابلو نوشت.</span></div>
+        <div class="step"><span class="n">۲</span><span>بقیهٔ بچه‌ها نهاد و فعل جمله را مشخص کردند.</span></div>
+        <div class="step"><span class="n">۳</span><span>معلم نقش نهاد و فعل را مرور کرد و گوشزد کرد: «هر فعل نمایندهٔ یک جمله است.»</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۲۳ — تکلیف و دانش زبانی -->
+  <section class="slide fa">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · تکلیف</span>
+      <h2>تکلیف خانه و دانش زبانی</h2>
+      <div class="grid g2">
+        <div class="card">
+          <h3>تکلیف خانه</h3>
+          <p>کلمه‌ای که ۵ نقطه دارد را بنویسند و با آن جمله بسازند.</p>
+        </div>
+        <div class="card">
+          <h3>دانش زبانی درس سوم</h3>
+          <p>مربوط به کلمات بیشتر از یک بخش (هجا) بود.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۲۴ — هجا -->
+  <section class="slide fa">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · دانش زبانی</span>
+      <h2>از «بخش» به «هجا»</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>معلم گوشزد کرد: «دیگر بخش نمی‌گوییم و به جای آن هجا می‌گوییم.»</span></div>
+        <div class="step"><span class="n">۲</span><span>از دانش‌آموزان خواست نام خودشان را هجا کنند.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۲۵ — واژگان مهم -->
+  <section class="slide fa">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · واژگان</span>
+      <h2>بررسی معنی کلمات مهم درس</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>معلم قبلاً از بچه‌ها خواسته بود معنی کلمات مهم درس قبل را پیدا کنند و بنویسند؛ انتخاب کلمات مهم با خودِ بچه‌ها بود.</span></div>
+        <div class="step"><span class="n">۲</span><span>حالا از آنها می‌خواست کلمات را بخوانند تا درستی معنی‌ها به صورت جمعی بررسی شود.</span></div>
+        <div class="step"><span class="n">۳</span><span>به دانش‌آموزی که بیشترین کلمه را نوشته بود آفرین گفت.</span></div>
+        <div class="step"><span class="n">۴</span><span>تذکر مهم: «در کتاب فارسی چیزی نمی‌نویسیم.»</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۲۶ — درس چهارم -->
+  <section class="slide fa">
+    <div class="wrap">
+      <span class="kicker">زنگ دوم · درس چهارم</span>
+      <h2>پیش‌خوانی و خوانش روان</h2>
+      <div class="steps">
+        <div class="step"><span class="n">۱</span><span>تکلیف بعدی: شعر جدید را حفظ کنند و تلاش کنند معنی آن را بفهمند.</span></div>
+        <div class="step"><span class="n">۲</span><span>ورود به درس چهارم: هر کس برای خودش درس را پیش‌خوانی کند و زیر کلمات ناآشنا خط بکشد.</span></div>
+        <div class="step"><span class="n">۳</span><span>یکی از دانش‌آموزان درس جدید را وسط کلاس خواند و معلم بر خط‌بردن بقیه نظارت داشت.</span></div>
+        <div class="step"><span class="n">۴</span><span>معلم از بچه‌ها خواست اگر کسی کلمه‌ای را اشتباه خواند، گوشزد کند.</span></div>
+        <div class="step"><span class="n">۵</span><span>در پایان، آقای سلیمی متن درس را به صورت روان و با لحن برای بچه‌ها خواند تا اشکالاتشان رفع شود.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ۲۷ — جمع‌بندی -->
+  <section class="slide info">
+    <div class="wrap" style="text-align:center">
+      <span class="kicker">جمع‌بندی</span>
+      <h2>نکات کلیدی این بازدید</h2>
+      <div class="grid g2" style="text-align:right">
+        <div class="card">
+          <h3>تدریس هم‌زمان دو پایه</h3>
+          <p>مدیریت کلاس چندپایه با تقسیم کار بین معلم و ارائه‌کننده و نظارت متقابل بر هر دو پایه.</p>
+        </div>
+        <div class="card">
+          <h3>آموزش عینی</h3>
+          <p>استفاده از رسم شکل و مثال‌های زندگی روزمره برای درک مفاهیم انتزاعی ریاضی و علوم.</p>
+        </div>
+        <div class="card">
+          <h3>مشارکت دانش‌آموزان</h3>
+          <p>پرسش و پاسخ، حل پای تابلو، هجاکردن نام‌ها و بیان برداشت شخصی از درس.</p>
+        </div>
+        <div class="card">
+          <h3>ارزشیابی مستمر</h3>
+          <p>بررسی پاسخ‌ها توسط خود دانش‌آموزان و رفع اشکال با خوانش روان و مرور مثال‌ها.</p>
+        </div>
+      </div>
+      <p class="note" style="margin-top:1.4rem; font-size:1rem">پایان گزارش</p>
+    </div>
+  </section>
+
+</main>
+
+<nav class="nav">
+  <button class="btn" id="prev">قبلی</button>
+  <div class="counter"><span id="cur">۱</span><span class="sep">/</span><span id="total">۱</span></div>
+  <button class="btn" id="next">بعدی</button>
+</nav>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total  = slides.length;
+  const curEl  = document.getElementById('cur');
+  const totEl  = document.getElementById('total');
+  const bar    = document.getElementById('progress');
+  const prevB  = document.getElementById('prev');
+  const nextB  = document.getElementById('next');
+  let index = 0;
+
+  const toFa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+
+  totEl.textContent = toFa(total);
+
+  function show(n){
+    index = Math.max(0, Math.min(total - 1, n));
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    curEl.textContent = toFa(index + 1);
+    bar.style.width = ((index + 1) / total * 100) + '%';
+    prevB.disabled = index === 0;
+    nextB.disabled = index === total - 1;
+    const w = slides[index].querySelector('.wrap');
+    if (w) w.scrollTop = 0;
+  }
+
+  prevB.addEventListener('click', () => show(index - 1));
+  nextB.addEventListener('click', () => show(index + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(index + 1); }
+    if (e.key === 'ArrowRight' || e.key === 'PageUp')                   { e.preventDefault(); show(index - 1); }
+    if (e.key === 'Home') { e.preventDefault(); show(0); }
+    if (e.key === 'End')  { e.preventDefault(); show(total - 1); }
+  });
+
+  // پیمایش با کشیدن انگشت (موبایل)
+  let x0 = null;
+  document.addEventListener('touchstart', e => { x0 = e.changedTouches[0].clientX; }, {passive:true});
+  document.addEventListener('touchend', e => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 55) (dx > 0 ? show(index - 1) : show(index + 1));
+    x0 = null;
+  }, {passive:true});
+
+  show(0);
+</script>
+</body>
+</html>
